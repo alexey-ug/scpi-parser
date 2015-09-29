@@ -79,6 +79,9 @@ extern "C" {
     size_t SCPI_ResultArbitraryBlockHeader(scpi_t * context, size_t len);
     size_t SCPI_ResultArbitraryBlockData(scpi_t * context, const void * data, size_t len);
     size_t SCPI_ResultBool(scpi_t * context, scpi_bool_t val);
+    // TODO, this functions are not upstreamed
+    size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size);
+    size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size);
 
     size_t SCPI_ResultArrayInt8(scpi_t * context, const int8_t * array, size_t count, scpi_array_format_t format);
     size_t SCPI_ResultArrayUInt8(scpi_t * context, const uint8_t * array, size_t count, scpi_array_format_t format);
@@ -116,6 +119,7 @@ extern "C" {
 
     scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options, int32_t * value, scpi_bool_t mandatory);
+    scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size, scpi_bool_t mandatory);
 
     scpi_bool_t SCPI_ParamArrayInt32(scpi_t * context, int32_t *data, size_t i_count, size_t *o_count, scpi_array_format_t format, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamArrayUInt32(scpi_t * context, uint32_t *data, size_t i_count, size_t *o_count, scpi_array_format_t format, scpi_bool_t mandatory);
