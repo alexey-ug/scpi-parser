@@ -655,7 +655,7 @@ static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t
     return result;
 }
 
-size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size) {
+size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, size_t size) {
 
     if (context->binary_output == true) {
         return resultBufferFloatBin(context, data, size);
