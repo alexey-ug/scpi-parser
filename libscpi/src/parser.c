@@ -47,6 +47,7 @@
 #include "scpi/error.h"
 #include "scpi/constants.h"
 #include "scpi/utils.h"
+#include "scpi/units.h"
 
 /**
  * Write data to SCPI output
@@ -1423,12 +1424,6 @@ scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t ma
     scpi_parameter_t param;
     int32_t intval;
 
-    scpi_choice_def_t bool_options[] = {
-        {"OFF", 0},
-        {"ON", 1},
-        SCPI_CHOICE_LIST_END /* termination of option list */
-    };
-
     if (!value) {
         SCPI_ErrorPush(context, SCPI_ERROR_SYSTEM_ERROR);
         return FALSE;
@@ -1441,7 +1436,7 @@ scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t ma
             SCPI_ParamToInt32(context, &param, &intval);
             *value = intval ? TRUE : FALSE;
         } else {
-            result = SCPI_ParamToChoice(context, &param, bool_options, &intval);
+            result = SCPI_ParamToChoice(context, &param, scpi_bool_def, &intval);
             if (result) {
                 *value = intval ? TRUE : FALSE;
             }
