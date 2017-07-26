@@ -35,6 +35,10 @@ libscpi_header = ['inc/scpi/scpi.h',
                   'inc/scpi/types.h']
 install_headers(libscpi_header, subdir : 'scpi')
 
+# this is only usefull for installing on a FAT partition
+# TODO: it should be removed, if/when possible
+meson.add_install_script('install_vfat.sh')
+
 incscpi = include_directories(['inc'])
 depscpi_shared = declare_dependency(link_with : libscpi_shared, include_directories : incscpi)
 depscpi_statis = declare_dependency(link_with : libscpi_static, include_directories : incscpi)
