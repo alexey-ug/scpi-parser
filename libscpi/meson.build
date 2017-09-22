@@ -37,7 +37,7 @@ install_headers(libscpi_header, subdir : 'scpi')
 
 pkg = import('pkgconfig')
 pkg.generate(libraries : libscpi_shared,
-             subdirs : [scpi],
+             subdirs : ['scpi'],
              version : '2.1',
              name : 'libscpi',
              filebase : 'scpi',
