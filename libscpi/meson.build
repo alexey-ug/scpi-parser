@@ -43,10 +43,6 @@ pkg.generate(libraries : libscpi_shared,
              filebase : 'scpi',
              description : 'SCPI parser library.')
 
-# this is only usefull for installing on a FAT partition
-# TODO: it should be removed, if/when possible
-meson.add_install_script('install_vfat.sh')
-
 incscpi = include_directories(['inc'])
 depscpi_shared = declare_dependency(link_with : libscpi_shared, include_directories : incscpi)
 depscpi_static = declare_dependency(link_with : libscpi_static, include_directories : incscpi)
