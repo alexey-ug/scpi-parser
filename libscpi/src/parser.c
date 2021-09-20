@@ -562,7 +562,7 @@ static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size
         }
         ptr += len;
         if (i < size-1){
-            result += writeData(context, ",", 1);
+            send_buff[ptr] = ',';
             ptr++;
         }
     }
@@ -618,7 +618,7 @@ static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t
         }
         ptr += len;
         if (i < size-1){
-            result += writeData(context, ",", 1);
+            send_buff[ptr] = ',';
             ptr++;
         }
     }
