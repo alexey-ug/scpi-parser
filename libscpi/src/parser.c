@@ -538,7 +538,7 @@ static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, size_t
     for (i = 0; i < size; i++) {
         new_buff[i] = htons((uint16_t) data[i]);
     }
-    result = writeData(context, (char*)new_buff, sizeof(int16_t) * size);
+    result += writeData(context, (char*)new_buff, sizeof(int16_t) * size);
     context->output_binary_count++;
     return result;
 }
@@ -552,15 +552,21 @@ static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size
     size_t i;
     size_t len;
     char buffer[12];
+    char send_buff[13 * size];
+    int  ptr = 0;
     for (i = 0; i < size; i++) {
         snprintf(buffer, sizeof (buffer), "%"PRIi16, data[i]);
         len = strlen(buffer);
-        // TODO: there were casting issues with the following code
-        //len = SCPI_Int32ToStr((int32_t) data[i], buffer, sizeof (buffer));
-        result += writeData(context, buffer, len);
-        if (i < size-1)
+        for(int j = 0 ; j < len;j++){
+            send_buff[ptr + j] = buffer[j];
+        }
+        ptr += len;
+        if (i < size-1){
             result += writeData(context, ",", 1);
+            ptr++;
+        }
     }
+    result += writeData(context, send_buff, ptr);
     result += writeData(context, "}", 1);
     context->output_count++;
     return result;
@@ -590,7 +596,7 @@ static size_t resultBufferFloatBin(scpi_t * context, const float *data, size_t s
     for (i = 0; i < size; i++) {
         new_buff[i] = hton_f(data[i]);
     }
-    result = writeData(context, (char*)(new_buff), sizeof(float) * size);
+    result += writeData(context, (char*)(new_buff), sizeof(float) * size);
     context->output_binary_count++;
     return result;
 }
@@ -602,13 +608,21 @@ static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t
 
     size_t i;
     size_t len;
-    char buffer[50];
+    char buffer[16];
+    char send_buff[17 * size];
+    int  ptr = 0;
     for (i = 0; i < size; i++) {
         len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
-        result += writeData(context, buffer, len);
-        if (i < size-1)
+        for(int j = 0 ; j < len;j++){
+            send_buff[ptr + j] = buffer[j];
+        }
+        ptr += len;
+        if (i < size-1){
             result += writeData(context, ",", 1);
+            ptr++;
+        }
     }
+    result += writeData(context, send_buff, ptr);
     result += writeData(context, "}", 1);
     context->output_count++;
     return result;
