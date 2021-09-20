@@ -534,10 +534,11 @@ static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, size_t
     }
 
     size_t i;
+    uint16_t new_buff[size];
     for (i = 0; i < size; i++) {
-        uint16_t value = htons((uint16_t) data[i]);
-        result += writeData(context, (char*)(&value), sizeof(int16_t));
+        new_buff[i] = htons((uint16_t) data[i]);
     }
+    result = writeData(context, (char*)new_buff, sizeof(int16_t) * size);
     context->output_binary_count++;
     return result;
 }
@@ -585,10 +586,11 @@ static size_t resultBufferFloatBin(scpi_t * context, const float *data, size_t s
     }
 
     size_t i;
+    float new_buff[size];
     for (i = 0; i < size; i++) {
-        float value = hton_f(data[i]);
-        result += writeData(context, (char*)(&value), sizeof(float));
+        new_buff[i] = hton_f(data[i]);
     }
+    result = writeData(context, (char*)(new_buff), sizeof(float) * size);
     context->output_binary_count++;
     return result;
 }
