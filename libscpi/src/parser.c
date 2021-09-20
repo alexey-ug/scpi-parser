@@ -557,7 +557,7 @@ static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size
     for (i = 0; i < size; i++) {
         snprintf(buffer, sizeof (buffer), "%"PRIi16, data[i]);
         len = strlen(buffer);
-        for(int j = 0 ; j < len;j++){
+        for(size_t j = 0 ; j < len;j++){
             send_buff[ptr + j] = buffer[j];
         }
         ptr += len;
@@ -613,7 +613,7 @@ static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t
     int  ptr = 0;
     for (i = 0; i < size; i++) {
         len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
-        for(int j = 0 ; j < len;j++){
+        for(size_t j = 0 ; j < len;j++){
             send_buff[ptr + j] = buffer[j];
         }
         ptr += len;
