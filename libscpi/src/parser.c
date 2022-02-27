@@ -543,6 +543,25 @@ static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, size_t
     return result;
 }
 
+static size_t resultBufferUInt8Bin(scpi_t * context, const uint8_t *data, size_t size) {
+    size_t result = 0;
+
+    result += writeBinHeader(context, size, sizeof(uint8_t));
+
+    if (result == 0) {
+        return result;
+    }
+
+    size_t i;
+    uint8_t new_buff[size];
+    for (i = 0; i < size; i++) {
+        new_buff[i] = htons((uint8_t) data[i]);
+    }
+    result += writeData(context, (char*)new_buff, sizeof(uint8_t) * size);
+    context->output_binary_count++;
+    return result;
+}
+
 #include <inttypes.h>
 static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size_t size) {
     size_t result = 0;
@@ -572,6 +591,34 @@ static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size
     return result;
 }
 
+static size_t resultBufferUInt8Ascii(scpi_t * context, const uint8_t *data, size_t size) {
+    size_t result = 0;
+    result += writeDelimiter(context);
+    result += writeData(context, "{", 1);
+
+    size_t i;
+    size_t len;
+    char buffer[12];
+    char send_buff[13 * size];
+    int  ptr = 0;
+    for (i = 0; i < size; i++) {
+        snprintf(buffer, sizeof (buffer), "%"PRIi8, data[i]);
+        len = strlen(buffer);
+        for(size_t j = 0 ; j < len;j++){
+            send_buff[ptr + j] = buffer[j];
+        }
+        ptr += len;
+        if (i < size-1){
+            send_buff[ptr] = ',';
+            ptr++;
+        }
+    }
+    result += writeData(context, send_buff, ptr);
+    result += writeData(context, "}", 1);
+    context->output_count++;
+    return result;
+}
+
 size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, size_t size) {
 
     if (context->binary_output == true) {
@@ -579,6 +626,16 @@ size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, size_t size
     }
     else {
         return resultBufferInt16Ascii(context, data, size);
+    }
+}
+
+size_t SCPI_ResultBufferUInt8(scpi_t * context, const uint8_t *data, size_t size) {
+
+    if (context->binary_output == true) {
+        return resultBufferUInt8Bin(context, data, size);
+    }
+    else {
+        return resultBufferUInt8Ascii(context, data, size);
     }
 }
 
@@ -1082,6 +1139,13 @@ scpi_bool_t SCPI_ParamInt32(scpi_t * context, int32_t * value, scpi_bool_t manda
     return ParamSignUInt32(context, (uint32_t *) value, mandatory, TRUE);
 }
 
+scpi_bool_t SCPI_ParamUInt8(scpi_t * context, uint8_t * value, scpi_bool_t mandatory) {
+  uint32_t value32 = 0;
+  scpi_bool_t ret = ParamSignUInt32(context, &value32, mandatory, FALSE);
+  *value = (uint8_t)value32;
+  return ret;
+}
+
 /**
  * Read unsigned 32 bit integer parameter
  * @param context
@@ -1126,11 +1190,6 @@ scpi_bool_t SCPI_ParamUInt64(scpi_t * context, uint64_t * value, scpi_bool_t man
 scpi_bool_t SCPI_ParamCharacters(scpi_t * context, const char ** value, size_t * len, scpi_bool_t mandatory) {
     scpi_bool_t result;
     scpi_parameter_t param;
-
-    if (!value || !len) {
-        SCPI_ErrorPush(context, SCPI_ERROR_SYSTEM_ERROR);
-        return FALSE;
-    }
 
     result = SCPI_Parameter(context, &param, mandatory);
     if (result) {
@@ -1345,6 +1404,21 @@ scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options
     }
 
     return result;
+}
+
+scpi_bool_t SCPI_ParamBufferUInt8(scpi_t * context, uint8_t *data, uint32_t *size, scpi_bool_t mandatory){
+    uint32_t max_size = *size;
+    *size = 0;
+    uint8_t value;
+    while (*size < max_size) {
+        if (!SCPI_ParamUInt8(context, &value, mandatory)) {
+            break;
+        }
+        data[*size] = (uint8_t) value;
+        *size = *size + 1;
+        mandatory = false;          // only first is mandatory
+    }
+    return true;
 }
 
 /**

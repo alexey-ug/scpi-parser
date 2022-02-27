@@ -61,6 +61,7 @@ extern "C" {
     size_t SCPI_ResultBool(scpi_t * context, scpi_bool_t val);
     // TODO, this functions are not upstreamed
     size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size);
+    size_t SCPI_ResultBufferUInt8(scpi_t * context, const uint8_t *data, uint32_t size);
     size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size);
 
     scpi_bool_t SCPI_Parameter(scpi_t * context, scpi_parameter_t * parameter, scpi_bool_t mandatory);
@@ -76,6 +77,7 @@ extern "C" {
     scpi_bool_t SCPI_ParamToChoice(scpi_t * context, scpi_parameter_t * parameter, const scpi_choice_def_t * options, int32_t * value);
     scpi_bool_t SCPI_ChoiceToName(const scpi_choice_def_t * options, int32_t tag, const char ** text);
 
+    scpi_bool_t SCPI_ParamUInt8(scpi_t * context, uint8_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamInt32(scpi_t * context, int32_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamUInt32(scpi_t * context, uint32_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamInt64(scpi_t * context, int64_t * value, scpi_bool_t mandatory);
@@ -89,6 +91,7 @@ extern "C" {
     scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options, int32_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size, scpi_bool_t mandatory);
+    scpi_bool_t SCPI_ParamBufferUInt8(scpi_t * context, uint8_t *data, uint32_t *size, scpi_bool_t mandatory);
 
     scpi_bool_t SCPI_IsCmd(scpi_t * context, const char * cmd);
 #if USE_COMMAND_TAGS
