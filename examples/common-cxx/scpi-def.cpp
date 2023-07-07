@@ -355,68 +355,68 @@ static scpi_result_t My_CoreTstQ(scpi_t * context) {
 
 const scpi_command_t scpi_commands[] = {
     /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
-    { .pattern = "*CLS", .callback = SCPI_CoreCls,},
-    { .pattern = "*ESE", .callback = SCPI_CoreEse,},
-    { .pattern = "*ESE?", .callback = SCPI_CoreEseQ,},
-    { .pattern = "*ESR?", .callback = SCPI_CoreEsrQ,},
-    { .pattern = "*IDN?", .callback = SCPI_CoreIdnQ,},
-    { .pattern = "*OPC", .callback = SCPI_CoreOpc,},
-    { .pattern = "*OPC?", .callback = SCPI_CoreOpcQ,},
-    { .pattern = "*RST", .callback = SCPI_CoreRst,},
-    { .pattern = "*SRE", .callback = SCPI_CoreSre,},
-    { .pattern = "*SRE?", .callback = SCPI_CoreSreQ,},
-    { .pattern = "*STB?", .callback = SCPI_CoreStbQ,},
-    { .pattern = "*TST?", .callback = My_CoreTstQ,},
-    { .pattern = "*WAI", .callback = SCPI_CoreWai,},
+    {"*CLS", SCPI_CoreCls, 0},
+    {"*ESE", SCPI_CoreEse, 0},
+    {"*ESE?", SCPI_CoreEseQ, 0},
+    {"*ESR?", SCPI_CoreEsrQ, 0},
+    {"*IDN?", SCPI_CoreIdnQ, 0},
+    {"*OPC", SCPI_CoreOpc, 0},
+    {"*OPC?", SCPI_CoreOpcQ, 0},
+    {"*RST", SCPI_CoreRst, 0},
+    {"*SRE", SCPI_CoreSre, 0},
+    {"*SRE?", SCPI_CoreSreQ, 0},
+    {"*STB?", SCPI_CoreStbQ, 0},
+    {"*TST?", My_CoreTstQ, 0},
+    {"*WAI", SCPI_CoreWai, 0},
 
     /* Required SCPI commands (SCPI std V1999.0 4.2.1) */
-    {.pattern = "SYSTem:ERRor[:NEXT]?", .callback = SCPI_SystemErrorNextQ,},
-    {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ,},
-    {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ,},
+    {"SYSTem:ERRor[:NEXT]?", SCPI_SystemErrorNextQ, 0},
+    {"SYSTem:ERRor:COUNt?", SCPI_SystemErrorCountQ, 0},
+    {"SYSTem:VERSion?", SCPI_SystemVersionQ, 0},
 
-    /* {.pattern = "STATus:OPERation?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:EVENt?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:CONDition?", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:ENABle", .callback = scpi_stub_callback,}, */
-    /* {.pattern = "STATus:OPERation:ENABle?", .callback = scpi_stub_callback,}, */
+    //{"STATus:OPERation?", scpi_stub_callback, 0},
+    //{"STATus:OPERation:EVENt?", scpi_stub_callback, 0},
+    //{"STATus:OPERation:CONDition?", scpi_stub_callback, 0},
+    //{"STATus:OPERation:ENABle", scpi_stub_callback, 0},
+    //{"STATus:OPERation:ENABle?", scpi_stub_callback, 0},
 
-    {.pattern = "STATus:QUEStionable[:EVENt]?", .callback = SCPI_StatusQuestionableEventQ,},
-    /* {.pattern = "STATus:QUEStionable:CONDition?", .callback = scpi_stub_callback,}, */
-    {.pattern = "STATus:QUEStionable:ENABle", .callback = SCPI_StatusQuestionableEnable,},
-    {.pattern = "STATus:QUEStionable:ENABle?", .callback = SCPI_StatusQuestionableEnableQ,},
+    {"STATus:QUEStionable[:EVENt]?", SCPI_StatusQuestionableEventQ, 0},
+    //{"STATus:QUEStionable:CONDition?", scpi_stub_callback, 0},
+    {"STATus:QUEStionable:ENABle", SCPI_StatusQuestionableEnable, 0},
+    {"STATus:QUEStionable:ENABle?", SCPI_StatusQuestionableEnableQ, 0},
 
-    {.pattern = "STATus:PRESet", .callback = SCPI_StatusPreset,},
+    {"STATus:PRESet", SCPI_StatusPreset, 0},
 
     /* DMM */
-    {.pattern = "MEASure:VOLTage:DC?", .callback = DMM_MeasureVoltageDcQ,},
-    {.pattern = "CONFigure:VOLTage:DC", .callback = DMM_ConfigureVoltageDc,},
-    {.pattern = "MEASure:VOLTage:DC:RATio?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:VOLTage:AC?", .callback = DMM_MeasureVoltageAcQ,},
-    {.pattern = "MEASure:CURRent:DC?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:CURRent:AC?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:RESistance?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:FRESistance?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:FREQuency?", .callback = SCPI_StubQ,},
-    {.pattern = "MEASure:PERiod?", .callback = SCPI_StubQ,},
+    {"MEASure:VOLTage:DC?", DMM_MeasureVoltageDcQ, 0},
+    {"CONFigure:VOLTage:DC", DMM_ConfigureVoltageDc, 0},
+    {"MEASure:VOLTage:DC:RATio?", SCPI_StubQ, 0},
+    {"MEASure:VOLTage:AC?", DMM_MeasureVoltageAcQ, 0},
+    {"MEASure:CURRent:DC?", SCPI_StubQ, 0},
+    {"MEASure:CURRent:AC?", SCPI_StubQ, 0},
+    {"MEASure:RESistance?", SCPI_StubQ, 0},
+    {"MEASure:FRESistance?", SCPI_StubQ, 0},
+    {"MEASure:FREQuency?", SCPI_StubQ, 0},
+    {"MEASure:PERiod?", SCPI_StubQ, 0},
 
-    {.pattern = "SYSTem:COMMunication:TCPIP:CONTROL?", .callback = SCPI_SystemCommTcpipControlQ,},
+    {"SYSTem:COMMunication:TCPIP:CONTROL?", SCPI_SystemCommTcpipControlQ, 0},
 
-    {.pattern = "TEST:BOOL", .callback = TEST_Bool,},
-    {.pattern = "TEST:CHOice?", .callback = TEST_ChoiceQ,},
-    {.pattern = "TEST#:NUMbers#", .callback = TEST_Numbers,},
-    {.pattern = "TEST:TEXT", .callback = TEST_Text,},
-    {.pattern = "TEST:ARBitrary?", .callback = TEST_ArbQ,},
-    {.pattern = "TEST:CHANnellist", .callback = TEST_Chanlst,},
+    {"TEST:BOOL", TEST_Bool, 0},
+    {"TEST:CHOice?", TEST_ChoiceQ, 0},
+    {"TEST#:NUMbers#", TEST_Numbers, 0},
+    {"TEST:TEXT", TEST_Text, 0},
+    {"TEST:ARBitrary?", TEST_ArbQ, 0},
+    {"TEST:CHANnellist", TEST_Chanlst, 0},
 
     SCPI_CMD_LIST_END
 };
 
 scpi_interface_t scpi_interface = {
-    .error = SCPI_Error,
-    .write = SCPI_Write,
-    .control = SCPI_Control,
-    .flush = SCPI_Flush,
-    .reset = SCPI_Reset,
+    /*.error = */ SCPI_Error,
+    /*.write = */ SCPI_Write,
+    /*.control = */ SCPI_Control,
+    /*.flush = */ SCPI_Flush,
+    /*.reset = */ SCPI_Reset,
 };
 
 char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];

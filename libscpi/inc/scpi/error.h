@@ -1,28 +1,29 @@
 /*-
- * Copyright (c) 2012-2013 Jan Breuer,
+ * BSD 2-Clause License
  *
- * All Rights Reserved
+ * Copyright (c) 2012-2018, Jan Breuer
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * modification, are permitted provided that the following conditions are met:
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -44,9 +45,10 @@
 extern "C" {
 #endif
 
-    void SCPI_ErrorInit(scpi_t * context);
+    void SCPI_ErrorInit(scpi_t * context, scpi_error_t * data, int16_t size);
     void SCPI_ErrorClear(scpi_t * context);
-    int16_t SCPI_ErrorPop(scpi_t * context);
+    scpi_bool_t SCPI_ErrorPop(scpi_t * context, scpi_error_t * error);
+    void SCPI_ErrorPushEx(scpi_t * context, int16_t err, char * info, size_t info_len);
     void SCPI_ErrorPush(scpi_t * context, int16_t err);
     int32_t SCPI_ErrorCount(scpi_t * context);
     const char * SCPI_ErrorTranslate(int16_t err);
@@ -59,6 +61,7 @@ extern "C" {
      * XE macro is for full set of SCPI errors available to user application
      */
 #define LIST_OF_ERRORS \
+    X(SCPI_ERROR_NO_ERROR,                         0, "No error")                                     \
     XE(SCPI_ERROR_COMMAND,                      -100, "Command error")                                \
     X(SCPI_ERROR_INVALID_CHARACTER,             -101, "Invalid character")                            \
     XE(SCPI_ERROR_SYNTAX,                       -102, "Syntax error")                                 \
@@ -164,7 +167,7 @@ extern "C" {
     XE(SCPI_ERROR_OUT_OF_DEVICE_MEMORY,         -321, "Out of memory")                                \
     XE(SCPI_ERROR_SELF_TEST_FAILED,             -330, "Self-test failed")                             \
     XE(SCPI_ERROR_CALIBRATION_FAILED,           -340, "Calibration failed")                           \
-    XE(SCPI_ERROR_QUEUE_OVERFLOW,               -350, "Queue overflow")                               \
+    X(SCPI_ERROR_QUEUE_OVERFLOW,                -350, "Queue overflow")                               \
     XE(SCPI_ERROR_COMMUNICATION_ERROR,          -360, "Communication error")                          \
     XE(SCPI_ERROR_PARITY_ERROR_IN_CMD_MSG,      -361, "Parity error in program message")              \
     XE(SCPI_ERROR_FRAMING_ERROR_IN_CMD_MSG,     -362, "Framing error in program message")             \

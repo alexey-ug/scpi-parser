@@ -34,28 +34,25 @@
  *
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
 #include "scpi/scpi.h"
-#include "../common/scpi-def.h"
+#include "../common-cxx/scpi-def.h"
 
 size_t SCPI_Write(scpi_t * context, const char * data, size_t len) {
     (void) context;
-    return fwrite(data, 1, len, stdout);
+    std::cout.write(data, len);
+    return len;
 }
 
 scpi_result_t SCPI_Flush(scpi_t * context) {
     (void) context;
-
+    std::cout << std::flush;
     return SCPI_RES_OK;
 }
 
 int SCPI_Error(scpi_t * context, int_fast16_t err) {
     (void) context;
-
-    fprintf(stderr, "**ERROR: %d, \"%s\"\r\n", (int16_t) err, SCPI_ErrorTranslate(err));
+    std::cerr << "**ERROR: " << err << ", \"" << SCPI_ErrorTranslate(err) << "\"" << std::endl;
     return 0;
 }
 
@@ -63,9 +60,9 @@ scpi_result_t SCPI_Control(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val
     (void) context;
 
     if (SCPI_CTRL_SRQ == ctrl) {
-        fprintf(stderr, "**SRQ: 0x%X (%d)\r\n", val, val);
+        std::cerr << "**SRQ: 0x" << std::hex << val << "(" << std::dec << val << ")" << std::endl;
     } else {
-        fprintf(stderr, "**CTRL %02x: 0x%X (%d)\r\n", ctrl, val, val);
+        std::cerr << "**CTRL: " << std::hex << ctrl << ": 0x" << std::hex << val << "(" << std::dec << val << ")" << std::endl;
     }
     return SCPI_RES_OK;
 }
@@ -73,7 +70,7 @@ scpi_result_t SCPI_Control(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val
 scpi_result_t SCPI_Reset(scpi_t * context) {
     (void) context;
 
-    fprintf(stderr, "**Reset\r\n");
+    std::cerr << "**Reset" << std::endl;
     return SCPI_RES_OK;
 }
 
@@ -89,7 +86,6 @@ scpi_result_t SCPI_SystemCommTcpipControlQ(scpi_t * context) {
 int main(int argc, char** argv) {
     (void) argc;
     (void) argv;
-    int result;
 
     SCPI_Init(&scpi_context,
             scpi_commands,
@@ -99,48 +95,12 @@ int main(int argc, char** argv) {
             scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
             scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);
 
-#define TEST_SCPI_INPUT(cmd)    result = SCPI_Input(&scpi_context, cmd, strlen(cmd))
-
-    TEST_SCPI_INPUT("*CLS\r\n");
-    TEST_SCPI_INPUT("*RST\r\n");
-    TEST_SCPI_INPUT("MEAS:volt:DC? 12,50;*OPC\r\n");
-    TEST_SCPI_INPUT("*IDN?\r\n");
-    TEST_SCPI_INPUT("SYST:VERS?");
-    TEST_SCPI_INPUT("\r\n*ID");
-    TEST_SCPI_INPUT("N?");
-    TEST_SCPI_INPUT(""); /* emulate command timeout */
-
-    TEST_SCPI_INPUT("*ESE\r\n"); /* cause error -109, missing parameter */
-    TEST_SCPI_INPUT("*ESE #H20\r\n");
-
-    TEST_SCPI_INPUT("*SRE #HFF\r\n");
-
-    TEST_SCPI_INPUT("IDN?\r\n"); /* cause error -113, undefined header */
-
-    TEST_SCPI_INPUT("SYST:ERR?\r\n");
-    TEST_SCPI_INPUT("SYST:ERR?\r\n");
-    TEST_SCPI_INPUT("*STB?\r\n");
-    TEST_SCPI_INPUT("*ESR?\r\n");
-    TEST_SCPI_INPUT("*STB?\r\n");
-
-    TEST_SCPI_INPUT("meas:volt:dc? 0.01 V, Default\r\n");
-    TEST_SCPI_INPUT("meas:volt:dc?\r\n");
-    TEST_SCPI_INPUT("meas:volt:dc? def, 0.00001\r\n");
-    TEST_SCPI_INPUT("meas:volt:dc? 0.00001\r\n");
-
-    TEST_SCPI_INPUT("test:text 'a'\r\n");
-    TEST_SCPI_INPUT("test:text 'a a'\r\n");
-    TEST_SCPI_INPUT("test:text 'aa a'\r\n");
-    TEST_SCPI_INPUT("test:text 'aaa aaaa'\r\n");
-    TEST_SCPI_INPUT("TEST:CHANnellist (@9!2:3!4,5!6)\r\n");
-    /* printf("%.*s %s\r\n",  3, "asdadasdasdasdas", "b");
-     * interactive demo
-     * char smbuffer[10];
-     * while (1) {
-     *     fgets(smbuffer, 10, stdin);
-     *     SCPI_Input(&scpi_context, smbuffer, strlen(smbuffer));
-     * }
-     */
+    std::cerr << "SCPI Interactive demo" << std::endl;
+    
+    while (1) {
+        char ch = std::cin.get();
+        SCPI_Input(&scpi_context, &ch, 1);
+    }
 
 
     return (EXIT_SUCCESS);

@@ -1,37 +1,38 @@
 /*-
- * Copyright (c) 2012-2013 Jan Breuer,
+ * BSD 2-Clause License
  *
- * All Rights Reserved
- * 
+ * Copyright (c) 2012-2018, Jan Breuer
+ * All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
  * @file   main.c
  * @date   Thu Nov 15 10:58:45 UTC 2012
- * 
+ *
  * @brief  TCP/IP SCPI Server
- * 
- * 
+ *
+ *
  */
 
 #include <stdio.h>
@@ -82,7 +83,7 @@ scpi_result_t SCPI_Flush(scpi_t * context) {
 
 int SCPI_Error(scpi_t * context, int_fast16_t err) {
     (void) context;
-    // BEEP
+    /* BEEP */
     fprintf(stderr, "**ERROR: %d, \"%s\"\r\n", (int16_t) err, SCPI_ErrorTranslate(err));
     return 0;
 }
@@ -99,7 +100,7 @@ scpi_result_t SCPI_Control(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val
     if (context->user_context != NULL) {
         user_data_t * u = (user_data_t *) (context->user_context);
         if (u->control_io >= 0) {
-            snprintf(b, sizeof (b), "SRQ%d\r\n", val);
+            sprintf(b, "SRQ%d\r\n", val);
             return write(u->control_io, b, strlen(b)) > 0 ? SCPI_RES_OK : SCPI_RES_ERR;
         }
     }
@@ -107,6 +108,8 @@ scpi_result_t SCPI_Control(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val
 }
 
 scpi_result_t SCPI_Reset(scpi_t * context) {
+    (void) context;
+
     fprintf(stderr, "**Reset\r\n");
     return SCPI_RES_OK;
 }
@@ -123,7 +126,7 @@ static int createServer(int port) {
     struct sockaddr_in servaddr;
 
     /* Configure TCP Server */
-    bzero(&servaddr, sizeof (servaddr));
+    memset(&servaddr, 0, sizeof (servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(port);
@@ -200,7 +203,7 @@ static int waitServer(user_data_t * user_data) {
     return rc;
 }
 
-static int processIoListen(user_data_t * user_data) {
+static void processIoListen(user_data_t * user_data) {
     struct sockaddr_in cliaddr;
     socklen_t clilen;
     clilen = sizeof (cliaddr);
@@ -211,7 +214,7 @@ static int processIoListen(user_data_t * user_data) {
     printf("Connection established %s\r\n", inet_ntoa(cliaddr.sin_addr));
 }
 
-static int processSrqIoListen(user_data_t * user_data) {
+static void processSrqIoListen(user_data_t * user_data) {
     struct sockaddr_in cliaddr;
     socklen_t clilen;
     clilen = sizeof (cliaddr);
@@ -231,7 +234,7 @@ static void closeSrqIo(user_data_t * user_data) {
     user_data->control_io = -1;
 }
 
-static int processIo(user_data_t * user_data) {
+static void processIo(user_data_t * user_data) {
     int rc;
     char smbuffer[10];
     rc = recv(user_data->io, smbuffer, sizeof (smbuffer), 0);
@@ -248,7 +251,7 @@ static int processIo(user_data_t * user_data) {
     }
 }
 
-static int processSrqIo(user_data_t * user_data) {
+static void processSrqIo(user_data_t * user_data) {
     int rc;
     char smbuffer[10];
     rc = recv(user_data->control_io, smbuffer, sizeof (smbuffer), 0);
@@ -261,18 +264,28 @@ static int processSrqIo(user_data_t * user_data) {
         closeSrqIo(user_data);
         printf("Control Connection closed\r\n");
     } else {
-        // nothing to do
+        /* nothing to do */
     }
 }
 
 /*
- * 
+ *
  */
 int main(int argc, char** argv) {
     (void) argc;
     (void) argv;
     int rc;
 
+#ifdef __cplusplus
+    user_data_t user_data = {
+        /*.io_listen =*/ -1,
+        /*.io =*/ -1,
+        /*.control_io_listen =*/ -1,
+        /*.control_io =*/ -1,
+        /*.fio =*/ NULL,
+        /*.fds =*/ 0,
+    };
+#else
     user_data_t user_data = {
         .io_listen = -1,
         .io = -1,
@@ -280,11 +293,17 @@ int main(int argc, char** argv) {
         .control_io = -1,
         .fio = NULL,
     };
+#endif
 
-    // user_context will be pointer to socket
+    /* user_context will be pointer to socket */
+    SCPI_Init(&scpi_context,
+            scpi_commands,
+            &scpi_interface,
+            scpi_units_def,
+            SCPI_IDN1, SCPI_IDN2, SCPI_IDN3, SCPI_IDN4,
+            scpi_input_buffer, SCPI_INPUT_BUFFER_LENGTH,
+            scpi_error_queue_data, SCPI_ERROR_QUEUE_SIZE);
     scpi_context.user_context = &user_data;
-
-    SCPI_Init(&scpi_context);
 
     user_data.io_listen = createServer(5025);
     user_data.control_io_listen = createServer(CONTROL_PORT);
@@ -292,12 +311,12 @@ int main(int argc, char** argv) {
     while (1) {
         rc = waitServer(&user_data);
 
-        if (rc < 0) { // failed
+        if (rc < 0) { /* failed */
             perror("select failed");
             exit(-1);
         }
 
-        if (rc == 0) { // timeout
+        if (rc == 0) { /* timeout */
             SCPI_Input(&scpi_context, NULL, 0);
         }
 

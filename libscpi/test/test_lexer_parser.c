@@ -1,8 +1,29 @@
-/*
- * File:   test_lexer.c
- * Author: jaybee
+/*-
+ * BSD 2-Clause License
  *
- * Created on Thu Mar 21 14:39:03 UTC 2013
+ * Copyright (c) 2012-2018, Jan Breuer
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <stdio.h>
@@ -110,6 +131,9 @@ static void testNondecimal(void) {
     TEST_TOKEN("#H123fe5A", scpiLex_NondecimalNumericData, 2, 7, SCPI_TOKEN_HEXNUM);
     TEST_TOKEN("#B0111010101", scpiLex_NondecimalNumericData, 2, 10, SCPI_TOKEN_BINNUM);
     TEST_TOKEN("#Q125725433", scpiLex_NondecimalNumericData, 2, 9, SCPI_TOKEN_OCTNUM);
+    TEST_TOKEN("#H123fe5A,", scpiLex_NondecimalNumericData, 2, 7, SCPI_TOKEN_HEXNUM);
+    TEST_TOKEN("#B0111010101,", scpiLex_NondecimalNumericData, 2, 10, SCPI_TOKEN_BINNUM);
+    TEST_TOKEN("#Q125725433,", scpiLex_NondecimalNumericData, 2, 9, SCPI_TOKEN_OCTNUM);
 }
 
 static void testCharacterProgramData(void) {
@@ -131,6 +155,7 @@ static void testDecimal(void) {
 static void testSuffix(void) {
     TEST_TOKEN("A/V , ", scpiLex_SuffixProgramData, 0, 3, SCPI_TOKEN_SUFFIX_PROGRAM_DATA);
     TEST_TOKEN("mA.h", scpiLex_SuffixProgramData, 0, 4, SCPI_TOKEN_SUFFIX_PROGRAM_DATA);
+    TEST_TOKEN("mA3.h", scpiLex_SuffixProgramData, 0, 5, SCPI_TOKEN_SUFFIX_PROGRAM_DATA);
 }
 
 static void testProgramHeader(void) {
@@ -138,6 +163,7 @@ static void testProgramHeader(void) {
     TEST_TOKEN("*RST ", scpiLex_ProgramHeader, 0, 4, SCPI_TOKEN_COMMON_PROGRAM_HEADER);
     TEST_TOKEN("*?; ", scpiLex_ProgramHeader, 0, 1, SCPI_TOKEN_INCOMPLETE_COMMON_PROGRAM_HEADER);
     TEST_TOKEN(":*IDN?; ", scpiLex_ProgramHeader, 0, 1, SCPI_TOKEN_INCOMPLETE_COMPOUND_PROGRAM_HEADER);
+    TEST_TOKEN(":meas", scpiLex_ProgramHeader, 0, 5, SCPI_TOKEN_COMPOUND_PROGRAM_HEADER);
     TEST_TOKEN("MEAS:VOLT:DC? ", scpiLex_ProgramHeader, 0, 13, SCPI_TOKEN_COMPOUND_QUERY_PROGRAM_HEADER);
     TEST_TOKEN("CONF:VOLT:DC ", scpiLex_ProgramHeader, 0, 12, SCPI_TOKEN_COMPOUND_PROGRAM_HEADER);
     TEST_TOKEN(":MEAS:VOLT:DC? ", scpiLex_ProgramHeader, 0, 14, SCPI_TOKEN_COMPOUND_QUERY_PROGRAM_HEADER);
@@ -145,7 +171,9 @@ static void testProgramHeader(void) {
     TEST_TOKEN("*IDN?", scpiLex_ProgramHeader, 0, 5, SCPI_TOKEN_COMMON_QUERY_PROGRAM_HEADER);
     TEST_TOKEN("*RST", scpiLex_ProgramHeader, 0, 4, SCPI_TOKEN_COMMON_PROGRAM_HEADER);
     TEST_TOKEN("CONF:VOLT:DC", scpiLex_ProgramHeader, 0, 12, SCPI_TOKEN_COMPOUND_PROGRAM_HEADER);
+    TEST_TOKEN("CONF:VOLT:DC", scpiLex_ProgramHeader, 0, 12, SCPI_TOKEN_COMPOUND_PROGRAM_HEADER);
     TEST_TOKEN("]]", scpiLex_ProgramHeader, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("*", scpiLex_ProgramHeader, 0, 1, SCPI_TOKEN_INCOMPLETE_COMMON_PROGRAM_HEADER);
 }
 
 static void testArbitraryBlock(void) {
@@ -154,6 +182,9 @@ static void testArbitraryBlock(void) {
     TEST_TOKEN("#13AB", scpiLex_ArbitraryBlockProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
     TEST_TOKEN("#12\r\n, ", scpiLex_ArbitraryBlockProgramData, 3, 2, SCPI_TOKEN_ARBITRARY_BLOCK_PROGRAM_DATA);
     TEST_TOKEN("#02AB, ", scpiLex_ArbitraryBlockProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("#12", scpiLex_ArbitraryBlockProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("#1", scpiLex_ArbitraryBlockProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("#", scpiLex_ArbitraryBlockProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
 }
 
 static void testExpression(void) {
@@ -172,6 +203,9 @@ static void testString(void) {
     TEST_TOKEN("\"ah\"\"oj\" ", scpiLex_StringProgramData, 0, 8, SCPI_TOKEN_DOUBLE_QUOTE_PROGRAM_DATA);
     TEST_TOKEN("\"\"", scpiLex_StringProgramData, 0, 2, SCPI_TOKEN_DOUBLE_QUOTE_PROGRAM_DATA);
     TEST_TOKEN("''", scpiLex_StringProgramData, 0, 2, SCPI_TOKEN_SINGLE_QUOTE_PROGRAM_DATA);
+
+    TEST_TOKEN("'abcd", scpiLex_StringProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("\"abcd", scpiLex_StringProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
 }
 
 static void testProgramData(void) {
@@ -191,7 +225,7 @@ static void testProgramData(void) {
 
     TEST_TOKEN("#12AB", scpiParser_parseProgramData, 3, 2, SCPI_TOKEN_ARBITRARY_BLOCK_PROGRAM_DATA);
     TEST_TOKEN("#12AB, ", scpiParser_parseProgramData, 3, 2, SCPI_TOKEN_ARBITRARY_BLOCK_PROGRAM_DATA);
-    TEST_TOKEN("#13AB", scpiParser_parseProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
+    TEST_TOKEN("#13AB", scpiParser_parseProgramData, 5, 0, SCPI_TOKEN_UNKNOWN);
     TEST_TOKEN("#12\r\n, ", scpiParser_parseProgramData, 3, 2, SCPI_TOKEN_ARBITRARY_BLOCK_PROGRAM_DATA);
     TEST_TOKEN("#02AB, ", scpiParser_parseProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
 
@@ -205,6 +239,8 @@ static void testProgramData(void) {
     TEST_TOKEN("'ah\"oj' ", scpiParser_parseProgramData, 0, 7, SCPI_TOKEN_SINGLE_QUOTE_PROGRAM_DATA);
     TEST_TOKEN("\"ah\"\"oj\" ", scpiParser_parseProgramData, 0, 8, SCPI_TOKEN_DOUBLE_QUOTE_PROGRAM_DATA);
     TEST_TOKEN("\"\"", scpiParser_parseProgramData, 0, 2, SCPI_TOKEN_DOUBLE_QUOTE_PROGRAM_DATA);
+    TEST_TOKEN("'test\r\n' ", scpiParser_parseProgramData, 0, 8, SCPI_TOKEN_SINGLE_QUOTE_PROGRAM_DATA);
+    TEST_TOKEN("'\xFA\xF0' ", scpiParser_parseProgramData, 0, 0, SCPI_TOKEN_UNKNOWN);
 
     TEST_TOKEN("abc_213as564 , ", scpiLex_CharacterProgramData, 0, 12, SCPI_TOKEN_PROGRAM_MNEMONIC);
 

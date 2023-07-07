@@ -1,30 +1,29 @@
 /*-
- * Copyright (c) 2013 Jan Breuer
- *                    Richard.hmm
- * Copyright (c) 2012 Jan Breuer
+ * BSD 2-Clause License
  *
- * All Rights Reserved
+ * Copyright (c) 2012-2018, Jan Breuer, Richard.hmm
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * modification, are permitted provided that the following conditions are met:
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -74,11 +73,23 @@ extern "C" {
         SCPI_REG_ESE, /* Event Status Enable Register */
         SCPI_REG_OPER, /* OPERation Status Register */
         SCPI_REG_OPERE, /* OPERation Status Enable Register */
+        SCPI_REG_OPERC, /* OPERation Status Condition Register */
         SCPI_REG_QUES, /* QUEStionable status register */
         SCPI_REG_QUESE, /* QUEStionable status Enable Register */
+        SCPI_REG_QUESC, /* QUEStionable status Condition Register */
 
-        /* last definition - number of registers */
-        SCPI_REG_COUNT
+#if USE_CUSTOM_REGISTERS
+#ifndef USER_REGISTERS
+#error "No user registers defined"
+#else
+        USER_REGISTERS
+#endif
+#endif
+
+        /* number of registers */
+        SCPI_REG_COUNT,
+        /* last definition - a value for no register */
+        SCPI_REG_NONE
     };
     typedef enum _scpi_reg_name_t scpi_reg_name_t;
 
@@ -104,6 +115,53 @@ extern "C" {
 
     typedef uint16_t scpi_reg_val_t;
 
+    enum _scpi_reg_class_t {
+        SCPI_REG_CLASS_STB = 0,
+        SCPI_REG_CLASS_SRE,
+        SCPI_REG_CLASS_EVEN,
+        SCPI_REG_CLASS_ENAB,
+        SCPI_REG_CLASS_COND,
+        SCPI_REG_CLASS_NTR,
+        SCPI_REG_CLASS_PTR,
+    };
+    typedef enum _scpi_reg_class_t scpi_reg_class_t;
+
+    enum _scpi_reg_group_t {
+        SCPI_REG_GROUP_STB = 0,
+        SCPI_REG_GROUP_ESR,
+        SCPI_REG_GROUP_OPER,
+        SCPI_REG_GROUP_QUES,
+
+#if USE_CUSTOM_REGISTERS
+#ifndef USER_REGISTER_GROUPS
+#error "No user register groups defined"
+#else
+        USER_REGISTER_GROUPS
+#endif
+#endif
+
+        /* last definition - number of register groups */
+        SCPI_REG_GROUP_COUNT
+    };
+    typedef enum _scpi_reg_group_t scpi_reg_group_t;
+
+    struct _scpi_reg_info_t {
+        scpi_reg_class_t type;
+        scpi_reg_group_t group;
+    };
+    typedef struct _scpi_reg_info_t scpi_reg_info_t;
+
+    struct _scpi_reg_group_info_t {
+        scpi_reg_name_t event;
+        scpi_reg_name_t enable;
+        scpi_reg_name_t condition;
+        scpi_reg_name_t ptfilt;
+        scpi_reg_name_t ntfilt;
+        scpi_reg_name_t parent_reg;
+        scpi_reg_val_t parent_bit;
+    };
+    typedef struct _scpi_reg_group_info_t scpi_reg_group_info_t;
+
     /* scpi commands */
     enum _scpi_result_t {
         SCPI_RES_OK = 1,
@@ -113,7 +171,12 @@ extern "C" {
 
     typedef struct _scpi_command_t scpi_command_t;
 
-#define SCPI_CMD_LIST_END       {NULL, NULL, 0}
+#if USE_COMMAND_TAGS
+	#define SCPI_CMD_LIST_END       {NULL, NULL, 0}
+#else
+	#define SCPI_CMD_LIST_END       {NULL, NULL}
+#endif
+
 
     /* scpi interface */
     typedef struct _scpi_t scpi_t;
@@ -201,8 +264,31 @@ extern "C" {
 
     typedef scpi_result_t(*scpi_command_callback_t)(scpi_t *);
 
-    /* scpi error queue */
-    typedef void * scpi_error_queue_t;
+    struct _scpi_error_info_heap_t {
+        size_t wr;
+        /* size_t rd; */
+        size_t count;
+        size_t size;
+        char * data;
+    };
+    typedef struct _scpi_error_info_heap_t scpi_error_info_heap_t;
+
+    struct _scpi_error_t {
+        int16_t error_code;
+#if USE_DEVICE_DEPENDENT_ERROR_INFORMATION
+        char * device_dependent_info;
+#endif
+    };
+    typedef struct _scpi_error_t scpi_error_t;
+
+    struct _scpi_fifo_t {
+        int16_t wr;
+        int16_t rd;
+        int16_t count;
+        int16_t size;
+        scpi_error_t * data;
+    };
+    typedef struct _scpi_fifo_t scpi_fifo_t;
 
     /* scpi units */
     enum _scpi_unit_t {
@@ -212,10 +298,54 @@ extern "C" {
         SCPI_UNIT_OHM,
         SCPI_UNIT_HERTZ,
         SCPI_UNIT_CELSIUS,
-        SCPI_UNIT_SECONDS,
-        SCPI_UNIT_DISTANCE,
-        SCPI_UNIT_ANGLE,
-        SCPI_UNIT_RATIO
+        SCPI_UNIT_SECOND,
+        SCPI_UNIT_METER,
+        SCPI_UNIT_GRAY,
+        SCPI_UNIT_BECQUEREL,
+        SCPI_UNIT_MOLE,
+        SCPI_UNIT_DEGREE,
+        SCPI_UNIT_GRADE,
+        SCPI_UNIT_RADIAN,
+        SCPI_UNIT_REVOLUTION,
+        SCPI_UNIT_STERADIAN,
+        SCPI_UNIT_SIEVERT,
+        SCPI_UNIT_FARAD,
+        SCPI_UNIT_COULOMB,
+        SCPI_UNIT_SIEMENS,
+        SCPI_UNIT_ELECTRONVOLT,
+        SCPI_UNIT_JOULE,
+        SCPI_UNIT_NEWTON,
+        SCPI_UNIT_LUX,
+        SCPI_UNIT_HENRY,
+        SCPI_UNIT_ASTRONOMIC_UNIT,
+        SCPI_UNIT_INCH,
+        SCPI_UNIT_FOOT,
+        SCPI_UNIT_PARSEC,
+        SCPI_UNIT_MILE,
+        SCPI_UNIT_NAUTICAL_MILE,
+        SCPI_UNIT_LUMEN,
+        SCPI_UNIT_CANDELA,
+        SCPI_UNIT_WEBER,
+        SCPI_UNIT_TESLA,
+        SCPI_UNIT_ATOMIC_MASS,
+        SCPI_UNIT_KILOGRAM,
+        SCPI_UNIT_WATT,
+        SCPI_UNIT_DBM,
+        SCPI_UNIT_ATMOSPHERE,
+        SCPI_UNIT_INCH_OF_MERCURY,
+        SCPI_UNIT_MM_OF_MERCURY,
+        SCPI_UNIT_PASCAL,
+        SCPI_UNIT_TORT,
+        SCPI_UNIT_BAR,
+        SCPI_UNIT_DECIBEL,
+        SCPI_UNIT_UNITLESS,
+        SCPI_UNIT_FAHRENHEIT,
+        SCPI_UNIT_KELVIN,
+        SCPI_UNIT_DAY,
+        SCPI_UNIT_YEAR,
+        SCPI_UNIT_STROKES,
+        SCPI_UNIT_POISE,
+        SCPI_UNIT_LITER
     };
     typedef enum _scpi_unit_t scpi_unit_t;
 
@@ -261,7 +391,7 @@ extern "C" {
         union {
             double value;
             int32_t tag;
-        };
+        } content;
         scpi_unit_t unit;
         int8_t base;
     };
@@ -299,15 +429,29 @@ extern "C" {
         int_fast16_t output_count;
         int_fast16_t output_binary_count;
         int_fast16_t input_count;
+        scpi_bool_t first_output;
         scpi_bool_t cmd_error;
-        scpi_error_queue_t error_queue;
-        scpi_reg_val_t * registers;
+        scpi_fifo_t error_queue;
+#if USE_DEVICE_DEPENDENT_ERROR_INFORMATION && !USE_MEMORY_ALLOCATION_FREE
+        scpi_error_info_heap_t error_info_heap;
+#endif
+        scpi_reg_val_t registers[SCPI_REG_COUNT];
         const scpi_unit_def_t * units;
         void * user_context;
         scpi_parser_state_t parser_state;
         const char * idn[4];
         bool binary_output;
+        size_t arbitrary_remaining;
     };
+
+    enum _scpi_array_format_t {
+        SCPI_FORMAT_ASCII = 0,
+        SCPI_FORMAT_NORMAL = 1,
+        SCPI_FORMAT_SWAPPED = 2,
+        SCPI_FORMAT_BIGENDIAN = SCPI_FORMAT_NORMAL,
+        SCPI_FORMAT_LITTLEENDIAN = SCPI_FORMAT_SWAPPED,
+    };
+    typedef enum _scpi_array_format_t scpi_array_format_t;
 
 #ifdef  __cplusplus
 }

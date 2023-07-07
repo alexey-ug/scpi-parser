@@ -1,28 +1,29 @@
 /*-
- * Copyright (c) 2012-2013 Jan Breuer,
+ * BSD 2-Clause License
  *
- * All Rights Reserved
- * 
+ * Copyright (c) 2012-2018, Jan Breuer
+ * All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -41,29 +42,75 @@
 
 #include <stdio.h>
 
-/**
- * Update register value
- * @param context
- * @param name - register name
- */
-static void regUpdate(scpi_t * context, scpi_reg_name_t name) {
-    SCPI_RegSet(context, name, SCPI_RegGet(context, name));
-}
+static const scpi_reg_info_t scpi_reg_details[SCPI_REG_COUNT] = {
+    { SCPI_REG_CLASS_STB, SCPI_REG_GROUP_STB },
+    { SCPI_REG_CLASS_SRE, SCPI_REG_GROUP_STB },
+    { SCPI_REG_CLASS_EVEN, SCPI_REG_GROUP_ESR },
+    { SCPI_REG_CLASS_ENAB, SCPI_REG_GROUP_ESR },
+    { SCPI_REG_CLASS_EVEN, SCPI_REG_GROUP_OPER },
+    { SCPI_REG_CLASS_ENAB, SCPI_REG_GROUP_OPER },
+    { SCPI_REG_CLASS_COND, SCPI_REG_GROUP_OPER },
+    { SCPI_REG_CLASS_EVEN, SCPI_REG_GROUP_QUES },
+    { SCPI_REG_CLASS_ENAB, SCPI_REG_GROUP_QUES },
+    { SCPI_REG_CLASS_COND, SCPI_REG_GROUP_QUES },
 
-/**
- * Update STB register according to value and its mask register
- * @param context
- * @param val value of register
- * @param mask name of mask register (enable register)
- * @param stbBits bits to clear or set in STB
- */
-static void regUpdateSTB(scpi_t * context, scpi_reg_val_t val, scpi_reg_name_t mask, scpi_reg_val_t stbBits) {
-    if (val & SCPI_RegGet(context, mask)) {
-        SCPI_RegSetBits(context, SCPI_REG_STB, stbBits);
-    } else {
-        SCPI_RegClearBits(context, SCPI_REG_STB, stbBits);
-    }
-}
+#if USE_CUSTOM_REGISTERS
+#ifndef USER_REGISTER_DETAILS
+#error "No user register details defined"
+#else
+    USER_REGISTER_DETAILS
+#endif
+#endif
+
+};
+
+static const scpi_reg_group_info_t scpi_reg_group_details[SCPI_REG_GROUP_COUNT] = {
+    { 
+        SCPI_REG_STB,
+        SCPI_REG_SRE,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        0
+    }, /* SCPI_REG_GROUP_STB */
+    { 
+        SCPI_REG_ESR,
+        SCPI_REG_ESE,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_STB,
+        STB_ESR
+    }, /* SCPI_REG_GROUP_ESR */
+    { 
+        SCPI_REG_OPER,
+        SCPI_REG_OPERE,
+        SCPI_REG_OPERC,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_STB,
+        STB_OPS
+    }, /* SCPI_REG_GROUP_OPER */
+    { 
+        SCPI_REG_QUES,
+        SCPI_REG_QUESE,
+        SCPI_REG_QUESC,
+        SCPI_REG_NONE,
+        SCPI_REG_NONE,
+        SCPI_REG_STB,
+        STB_QES
+    }, /* SCPI_REG_GROUP_QUES */
+
+#if USE_CUSTOM_REGISTERS
+#ifndef USER_REGISTER_GROUP_DETAILS
+#error "No user register group details defined"
+#else
+    USER_REGISTER_GROUP_DETAILS
+#endif
+#endif
+
+};
 
 /**
  * Get register value
@@ -71,7 +118,7 @@ static void regUpdateSTB(scpi_t * context, scpi_reg_val_t val, scpi_reg_name_t m
  * @return register value
  */
 scpi_reg_val_t SCPI_RegGet(scpi_t * context, scpi_reg_name_t name) {
-    if ((name < SCPI_REG_COUNT) && (context->registers != NULL)) {
+    if ((name < SCPI_REG_COUNT) && context) {
         return context->registers[name];
     } else {
         return 0;
@@ -98,69 +145,98 @@ static size_t writeControl(scpi_t * context, scpi_ctrl_name_t ctrl, scpi_reg_val
  * @param val - new value
  */
 void SCPI_RegSet(scpi_t * context, scpi_reg_name_t name, scpi_reg_val_t val) {
-    scpi_bool_t srq = FALSE;
-    scpi_reg_val_t mask;
-    scpi_reg_val_t old_val;
-
-    if ((name >= SCPI_REG_COUNT) || (context->registers == NULL)) {
+    if ((name >= SCPI_REG_COUNT) || (context == NULL)) {
         return;
     }
 
-    /* store old register value */
-    old_val = context->registers[name];
+    scpi_reg_group_info_t register_group;
 
-    /* set register value */
-    context->registers[name] = val;
+    do {
+        scpi_reg_class_t register_type = scpi_reg_details[name].type;
+        register_group = scpi_reg_group_details[scpi_reg_details[name].group];
 
-    /** @TODO: remove recutsion */
-    switch (name) {
-        case SCPI_REG_STB:
-            mask = SCPI_RegGet(context, SCPI_REG_SRE);
-            mask &= ~STB_SRQ;
-            if (val & mask) {
-                val |= STB_SRQ;
-                /* avoid sending SRQ if nothing has changed */
-                if (old_val != val) {
-                    srq = TRUE;
+        scpi_reg_val_t ptrans;
+
+        /* store old register value */
+        scpi_reg_val_t old_val = context->registers[name];
+
+        if (old_val == val) {
+            return;
+        } else {
+            context->registers[name] = val;
+        }
+
+        switch (register_type) {
+            case SCPI_REG_CLASS_STB:
+            case SCPI_REG_CLASS_SRE:
+            {
+                scpi_reg_val_t stb = context->registers[SCPI_REG_STB] & ~STB_SRQ;
+                scpi_reg_val_t sre = context->registers[SCPI_REG_SRE] & ~STB_SRQ;
+
+                if (stb & sre) {
+                    ptrans = ((old_val ^ val) & val);
+                    context->registers[SCPI_REG_STB] |= STB_SRQ;
+                    if (ptrans & val) {
+                        writeControl(context, SCPI_CTRL_SRQ, context->registers[SCPI_REG_STB]);
+                    }
+                } else {
+                    context->registers[SCPI_REG_STB] &= ~STB_SRQ;
                 }
-            } else {
-                val &= ~STB_SRQ;
+                break;
             }
-            break;
-        case SCPI_REG_SRE:
-            regUpdate(context, SCPI_REG_STB);
-            break;
-        case SCPI_REG_ESR:
-            regUpdateSTB(context, val, SCPI_REG_ESE, STB_ESR);
-            break;
-        case SCPI_REG_ESE:
-            regUpdate(context, SCPI_REG_ESR);
-            break;
-        case SCPI_REG_QUES:
-            regUpdateSTB(context, val, SCPI_REG_QUESE, STB_QES);
-            break;
-        case SCPI_REG_QUESE:
-            regUpdate(context, SCPI_REG_QUES);
-            break;
-        case SCPI_REG_OPER:
-            regUpdateSTB(context, val, SCPI_REG_OPERE, STB_OPS);
-            break;
-        case SCPI_REG_OPERE:
-            regUpdate(context, SCPI_REG_OPER);
-            break;
+            case SCPI_REG_CLASS_EVEN:
+            {
+                scpi_reg_val_t enable;
+                if(register_group.enable != SCPI_REG_NONE) {
+                    enable = SCPI_RegGet(context, register_group.enable);
+                } else {
+                    enable = 0xFFFF;
+                }
 
+                scpi_bool_t summary = val & enable;
 
-        case SCPI_REG_COUNT:
-            /* nothing to do */
-            break;
-    }
+                name = register_group.parent_reg;
+                val = SCPI_RegGet(context, register_group.parent_reg);
+                if (summary) {
+                    val |= register_group.parent_bit;
+                } else {
+                    val &= ~(register_group.parent_bit);
+                }
+                break;
+            }
+            case SCPI_REG_CLASS_COND:
+            {
+                name = register_group.event;
 
-    /* set updated register value */
-    context->registers[name] = val;
+                if(register_group.ptfilt == SCPI_REG_NONE && register_group.ntfilt == SCPI_REG_NONE) {
+                    val = ((old_val ^ val) & val) | SCPI_RegGet(context, register_group.event);
+                } else {
+                    scpi_reg_val_t ptfilt = 0, ntfilt = 0;
+                    scpi_reg_val_t transitions;
+                    scpi_reg_val_t ntrans;
 
-    if (srq) {
-        writeControl(context, SCPI_CTRL_SRQ, SCPI_RegGet(context, SCPI_REG_STB));
-    }
+                    if(register_group.ptfilt != SCPI_REG_NONE) {
+                        ptfilt = SCPI_RegGet(context, register_group.ptfilt);
+                    }
+
+                    if(register_group.ntfilt != SCPI_REG_NONE) {
+                        ntfilt = SCPI_RegGet(context, register_group.ntfilt);
+                    }
+
+                    transitions = old_val ^ val;
+                    ptrans = transitions & val;
+                    ntrans = transitions & ~ptrans;
+
+                    val = ((ptrans & ptfilt) | (ntrans & ntfilt)) | SCPI_RegGet(context, register_group.event);
+                }
+                break;
+            }
+            case SCPI_REG_CLASS_ENAB:
+            case SCPI_REG_CLASS_NTR:
+            case SCPI_REG_CLASS_PTR:
+                return;
+        }
+    } while(register_group.parent_reg != SCPI_REG_NONE);
 }
 
 /**
@@ -182,25 +258,20 @@ void SCPI_RegClearBits(scpi_t * context, scpi_reg_name_t name, scpi_reg_val_t bi
 }
 
 /**
- * Clear event register
- * @param context
- */
-void SCPI_EventClear(scpi_t * context) {
-    /* TODO */
-    SCPI_RegSet(context, SCPI_REG_ESR, 0);
-}
-
-/**
  * *CLS - This command clears all status data structures in a device. 
  *        For a device which minimally complies with SCPI. (SCPI std 4.1.3.2)
  * @param context
  * @return 
  */
 scpi_result_t SCPI_CoreCls(scpi_t * context) {
-    SCPI_EventClear(context);
     SCPI_ErrorClear(context);
-    SCPI_RegSet(context, SCPI_REG_OPER, 0);
-    SCPI_RegSet(context, SCPI_REG_QUES, 0);
+    int i;
+    for (i = 0; i < SCPI_REG_GROUP_COUNT; ++i) {
+        scpi_reg_name_t event_reg = scpi_reg_group_details[i].event;
+        if (event_reg != SCPI_REG_STB) {
+            SCPI_RegSet(context, event_reg, 0);
+        }
+    }
     return SCPI_RES_OK;
 }
 

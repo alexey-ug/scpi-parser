@@ -1,15 +1,25 @@
 SCPI parser library v2
 ===========
 
-[Documentation](http://j123b567.github.io/scpi-parser)
+![Build status](https://github.com/j123b567/scpi-parser/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/j123b567/scpi-parser/badge.svg?branch=master&service=github)](https://coveralls.io/github/j123b567/scpi-parser?branch=master)
+
+Documentation
 --------
+Documentation is available at [http://j123b567.github.io/scpi-parser](http://j123b567.github.io/scpi-parser).
+
+Examples
+--------
+Library contains several [examples](https://github.com/j123b567/scpi-parser/tree/master/examples) of usage but please note, that this code is just for educational purpose and not production ready.
+Examples are from several contributors and they are not tested and it is also not known, if they really work or can compile at all.
+
+The core library itself is well tested and has more then 93% of the code covered by unit tests and integration tests and tries to be SCPI-99 compliant as much as possible.
 
 About
 --------
 
 [SCPI](http://en.wikipedia.org/wiki/Standard_Commands_for_Programmable_Instruments) Parser library aims to provide parsing ability of SCPI commands on **instrument side**. All commands are defined by its patterns eg: `"STATus:QUEStionable:EVENt?"`.
 
-Source codes are published with open source Simplified BSD license.
+Source codes are published with open source BSD 2-Clause License.
 
 SCPI parser library is based on these standards
 
@@ -31,7 +41,7 @@ SCPI parser library is based on these standards
 <tr><td>Compound command<td><code>CONFigure:VOLTage</code><tr>
 <tr><td>Query command<td><code>MEASure:VOLTage?</code>, <code>*IDN?</code></tr>
 <tr><td>Optional keywords<td><code>MEASure:VOLTage[:DC]?</code></tr>
-<tr><td>Numeric keyword suffix<br>Multiple identical capabilities<td><code>OUTput#:FREQunecy</code></tr>
+<tr><td>Numeric keyword suffix<br>Multiple identical capabilities<td><code>OUTput#:FREQuency</code></tr>
 </table>
 
 **Supported parameter types**
@@ -49,6 +59,3 @@ SCPI parser library is based on these standards
 <tr><td>Channel list<td><code>(@1!2:3!4,5!6)</code></tr>
 <tr><td>Character data<td><code>MINimum</code>, <code>DEFault</code>, <code>INFinity</code></tr>
 </table>
-
-
-[![travis build](https://travis-ci.org/j123b567/scpi-parser.svg?branch=master)](https://travis-ci.org/j123b567/scpi-parser)
