@@ -81,8 +81,8 @@ extern "C" {
     size_t SCPI_ResultArbitraryBlockData(scpi_t * context, const void * data, size_t len);
     size_t SCPI_ResultBool(scpi_t * context, scpi_bool_t val);
     // TODO, this functions are not upstreamed
-    size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size);
-    size_t SCPI_ResultBufferUInt8(scpi_t * context, const uint8_t *data, uint32_t size);
+    size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, size_t size);
+    size_t SCPI_ResultBufferUInt8(scpi_t * context, const uint8_t *data, size_t size);
     size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size);
 
     size_t SCPI_ResultArrayInt8(scpi_t * context, const int8_t * array, size_t count, scpi_array_format_t format);
