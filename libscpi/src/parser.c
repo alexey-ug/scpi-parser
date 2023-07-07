@@ -39,6 +39,7 @@
 #include <sys/socket.h>
 #include <elf.h>
 #include <stdio.h>
+#include <arpa/inet.h>
 
 #include "scpi/config.h"
 #include "scpi/parser.h"

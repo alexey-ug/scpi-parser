@@ -40,6 +40,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <arpa/inet.h>
 
 #include "utils_private.h"
 #include "scpi/utils.h"

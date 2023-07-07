@@ -345,7 +345,9 @@ extern "C" {
         SCPI_UNIT_YEAR,
         SCPI_UNIT_STROKES,
         SCPI_UNIT_POISE,
-        SCPI_UNIT_LITER
+        SCPI_UNIT_LITER,
+        SCPI_UNIT_ANGLE,
+        SCPI_UNIT_RATIO
     };
     typedef enum _scpi_unit_t scpi_unit_t;
 

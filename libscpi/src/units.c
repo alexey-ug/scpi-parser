@@ -37,6 +37,7 @@
 
 #include <string.h>
 #include <math.h>
+
 #include "scpi/parser.h"
 #include "scpi/units.h"
 #include "utils_private.h"
