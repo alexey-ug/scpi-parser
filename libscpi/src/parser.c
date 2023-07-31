@@ -718,7 +718,8 @@ static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t
 
     size_t i;
     size_t len;
-    char buffer[16];
+    char buffer[32];
+    memset(buffer,0,32);
     char send_buff[17 * size];
     int  ptr = 0;
     for (i = 0; i < size; i++) {
