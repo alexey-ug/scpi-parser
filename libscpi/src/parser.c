@@ -713,27 +713,15 @@ static size_t resultBufferFloatBin(scpi_t * context, const float *data, size_t s
 
 static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t size) {
     size_t result = 0;
-    result += writeDelimiter(context);
     result += writeData(context, "{", 1);
 
     size_t i;
-    size_t len;
     char buffer[32];
-    memset(buffer,0,32);
-    char send_buff[17 * size];
     int  ptr = 0;
     for (i = 0; i < size; i++) {
-        len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
-        for(size_t j = 0 ; j < len;j++){
-            send_buff[ptr + j] = buffer[j];
-        }
-        ptr += len;
-        if (i < size-1){
-            send_buff[ptr] = ',';
-            ptr++;
-        }
+        sprintf(buffer,"%f%s",data[i],(i < size-1 ? ",":""));
+        result += writeData(context, buffer, strlen(buffer));
     }
-    result += writeData(context, send_buff, ptr);
     result += writeData(context, "}", 1);
     context->output_count++;
     return result;
