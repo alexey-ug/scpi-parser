@@ -191,7 +191,7 @@ static scpi_bool_t processCommand(scpi_t * context) {
                 result = FALSE;
             }
         }
-        if(context->output_count > 0) {
+        if(context->output_count > 0 || is_query) {
             context->first_output = FALSE;
         }
     }
