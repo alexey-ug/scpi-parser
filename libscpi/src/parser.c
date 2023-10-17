@@ -189,11 +189,10 @@ static scpi_bool_t processCommand(scpi_t * context) {
         } else {
             if (context->cmd_error) {
                 result = FALSE;
-            } else {
-                if(context->first_output && is_query) {
-                    context->first_output = FALSE;
-                }
             }
+        }
+        if(context->output_count > 0) {
+            context->first_output = FALSE;
         }
     }
 
