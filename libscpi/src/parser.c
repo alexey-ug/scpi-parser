@@ -576,6 +576,25 @@ size_t SCPI_ResultText(scpi_t * context, const char * data) {
     return result;
 }
 
+static size_t resultBufferUInt32Bin(scpi_t * context, const uint32_t *data, size_t size) {
+    size_t result = 0;
+
+    result += writeBinHeader(context, size, sizeof(uint32_t));
+
+    if (result == 0) {
+        return result;
+    }
+
+    size_t i;
+    uint32_t new_buff[size];
+    for (i = 0; i < size; i++) {
+        new_buff[i] = htonl((uint32_t) data[i]);
+    }
+    result += writeData(context, (char*)new_buff, sizeof(uint32_t) * size);
+    context->output_binary_count++;
+    return result;
+}
+
 static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, size_t size) {
     size_t result = 0;
 
@@ -615,6 +634,34 @@ static size_t resultBufferUInt8Bin(scpi_t * context, const uint8_t *data, size_t
 }
 
 #include <inttypes.h>
+static size_t resultBufferUInt32Ascii(scpi_t * context, const uint32_t *data, size_t size) {
+    size_t result = 0;
+    result += writeDelimiter(context);
+    result += writeData(context, "{", 1);
+
+    size_t i;
+    size_t len;
+    char buffer[12];
+    char send_buff[13 * size];
+    int  ptr = 0;
+    for (i = 0; i < size; i++) {
+        snprintf(buffer, sizeof (buffer), "%"PRIu32, data[i]);
+        len = strlen(buffer);
+        for(size_t j = 0 ; j < len;j++){
+            send_buff[ptr + j] = buffer[j];
+        }
+        ptr += len;
+        if (i < size-1){
+            send_buff[ptr] = ',';
+            ptr++;
+        }
+    }
+    result += writeData(context, send_buff, ptr);
+    result += writeData(context, "}", 1);
+    context->output_count++;
+    return result;
+}
+
 static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size_t size) {
     size_t result = 0;
     result += writeDelimiter(context);
@@ -678,6 +725,15 @@ size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, size_t size
     }
     else {
         return resultBufferInt16Ascii(context, data, size);
+    }
+}
+
+size_t SCPI_ResultBufferUInt32(scpi_t * context, const uint32_t *data, size_t size) {
+    if (context->binary_output == true) {
+        return resultBufferUInt32Bin(context, data, size);
+    }
+    else {
+        return resultBufferUInt32Ascii(context, data, size);
     }
 }
 
